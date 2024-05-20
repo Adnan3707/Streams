@@ -15,7 +15,7 @@ const main= () =>{
     //     console.log('Stream Ended');
     //     writeStream.end()
     // })
-    readStream.pipe(writeStream)
+    // readStream.pipe(writeStream)
     
     // readStream.pipe(
     //     csv({
@@ -38,14 +38,25 @@ const main= () =>{
             callback(null,user)    
             }
         })
+    const myFilter = new Transform( {
+        objectMode :true,
+        transform(user,enc,callback){
+            if(!user.isActive){
+                callback(null)
+                return
+            }
+            callback(null,user)
+        }
+    })
 
     readStream.pipe(
         csv({
             delimiter:';'
         },{objectMode:true})
-    ).pipe(myTransform).on('data',data=>{
+    ).pipe(myFilter).pipe(myTransform).on('data',data=>{
         console.log('--Data ');
-        console.log(data)
+        console.log(data);
+        writeStream.write(data)
     }).on('error',error=>{
         console.log('error',error)
     }).on('end',()=>{
